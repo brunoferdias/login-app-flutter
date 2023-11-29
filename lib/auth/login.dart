@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:local_auth/local_auth.dart';
 import 'package:login_ui/auth/components/botao.dart';
 import 'package:login_ui/auth/components/campoDeTexto.dart';
 import 'package:login_ui/auth/signup.dart';
@@ -24,6 +25,53 @@ class _LoginState extends State<Login> {
   final _firebaseAuth = FirebaseAuth.instance;
   bool carregandoDados = false;
   final GoogleSignIn googleSignIn = GoogleSignIn();
+  final LocalAuthentication localAuth = LocalAuthentication();
+
+  final _emailFocusNode = FocusNode();
+  final _senhaFocusNode = FocusNode();
+
+
+
+  Future<void> _authenticate() async {
+    bool canCheckBiometrics = await localAuth.canCheckBiometrics;
+
+    if (!canCheckBiometrics) {
+      // Dispositivo não suporta autenticação biométrica
+      return;
+    }
+
+    List<BiometricType> availableBiometrics = await localAuth.getAvailableBiometrics();
+    // Verifica se Face ID ou Touch ID está disponível no dispositivo
+    if (availableBiometrics.contains(BiometricType.face) || availableBiometrics.contains(BiometricType.fingerprint)) {
+      bool authenticated = await localAuth.authenticate(
+        localizedReason: 'Autentique-se para prosseguir',
+
+      );
+
+      if (authenticated) {
+
+        Navigator.push(
+          context,
+          PageTransition(
+            type: PageTransitionType.rightToLeft,
+            alignment: Alignment.center,
+            child: Home(),
+            isIos: true,
+            duration: Duration(milliseconds: 1000),
+            reverseDuration: Duration(milliseconds: 1000),
+          ),
+        );
+
+        // Autenticação bem-sucedida
+        // Faça algo após a autenticação (por exemplo, navegar para a próxima tela)
+      } else {
+        // Autenticação falhou ou foi cancelada pelo usuário
+      }
+    } else {
+      // O dispositivo não tem suporte a Face ID ou Touch ID
+    }
+  }
+
 
   Future<UserCredential?> _signInWithGoogle() async {
     try {
@@ -87,10 +135,11 @@ class _LoginState extends State<Login> {
         String errorMessage = 'Ocorreu um erro ao fazer login.';
 
         switch (e.code) {
+
           case 'user-not-found':
             errorMessage = 'Email não cadastrado!';
             break;
-          case 'wrong-password':
+          case 'invalid-credential':
             errorMessage = 'Login ou senha incorretos!';
             break;
           case 'invalid-email':
@@ -99,10 +148,9 @@ class _LoginState extends State<Login> {
           case 'network-request-failed':
             errorMessage = 'Sem conexão de internet!';
             break;
-          default:
-            errorMessage = 'Erro desconhecido: ${e.message}';
-            break;
+
         }
+        print(e.code.toString());
 
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text(errorMessage),
@@ -147,9 +195,11 @@ class _LoginState extends State<Login> {
                     //Email
                     CampoTexto(
                       hintText: 'Seu email',
+                      keyboardType: TextInputType.emailAddress,
                       prefixIcon: SvgPicture.asset("assets/icons/email.svg"),
                       controller: _emailController,
                       onSaved: (email) {},
+
                     ),
 
                     //Senha
@@ -159,6 +209,7 @@ class _LoginState extends State<Login> {
                       obscureText: true,
                       controller: _passwordController,
                       onSaved: (password) {},
+
                     ),
 
                     //Divider
@@ -200,6 +251,7 @@ class _LoginState extends State<Login> {
                         GestureDetector(
                             onTap: () {
                               print("Entrar com Apple");
+                              _authenticate();
                             },
                             child: SvgPicture.asset(
                                 "assets/icons/apple_box.svg",
@@ -214,7 +266,6 @@ class _LoginState extends State<Login> {
 
                             UserCredential? userCredential = await _signInWithGoogle();
                             if (userCredential != null) {
-                              // Login com o Google foi bem-sucedido, faça o que for necessário aqui.
                               print('Usuário logado com sucesso: ${userCredential.user!.displayName}');
 
                               Navigator.push(
@@ -228,11 +279,7 @@ class _LoginState extends State<Login> {
                                   reverseDuration: Duration(milliseconds: 1000),
                                 ),
                               );
-
                             }
-
-
-
                           },
                           child: SvgPicture.asset("assets/icons/google_box.svg", width: 50),
                         ),

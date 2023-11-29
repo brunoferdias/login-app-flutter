@@ -2,6 +2,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:login_ui/auth/login.dart';
+import 'package:login_ui/home/home.dart';
 
 import 'firebase_options.dart';
 

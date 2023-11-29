@@ -14,6 +14,26 @@ class _HomeState extends State<Home> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn();
 
+
+  Future<void> _apagarConta(BuildContext context) async {
+    try {
+      User? user = _auth.currentUser;
+      await user?.delete();
+
+      await _auth.signOut();
+
+
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => Login()),
+            (route) => false,
+      );
+    } catch (e) {
+      print("Erro ao apagar conta: $e");
+    }
+  }
+
+
   Future<void> _signOut(BuildContext context) async {
     try {
       await _auth.signOut();
@@ -51,6 +71,14 @@ class _HomeState extends State<Home> {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
+
+            ElevatedButton(
+              onPressed: () {
+                _apagarConta(context);
+              },
+              child: Text("Apagar conta"),
+            ),
+
             ElevatedButton(
               onPressed: () {
                 _signOut(context);

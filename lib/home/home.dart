@@ -91,8 +91,7 @@ class _HomeState extends State<Home> {
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 16),
             ),
-            SizedBox(height: 20),
-            Text("15 Pessoas já cadastraram login nesse app"),
+
           ],
         ),
       ),

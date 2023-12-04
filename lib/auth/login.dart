@@ -50,6 +50,12 @@ class _LoginState extends State<Login> {
   }
 
   login() async {
+
+    FocusScopeNode currentFocus = FocusScope.of(context);
+    if (!currentFocus.hasPrimaryFocus) {
+      currentFocus.unfocus();
+    }
+
     if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
         content: Text('Insira o email e a senha!'),
@@ -69,7 +75,7 @@ class _LoginState extends State<Login> {
         );
 
         if (userCredential != null) {
-          Navigator.push(
+          Navigator.pushReplacement(
             context,
             PageTransition(
               type: PageTransitionType.rightToLeft,
@@ -180,8 +186,6 @@ class _LoginState extends State<Login> {
                             text: "Entrar",
                             onPressed: () {
                               print("entrar");
-
-                              //Navigator.push(context, MaterialPageRoute(builder: (context)=> Home()));
                               login();
                             },
                           ),
@@ -197,7 +201,6 @@ class _LoginState extends State<Login> {
                     ),
 
                     //Icones Google e Apple
-
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       mainAxisAlignment: MainAxisAlignment.center,

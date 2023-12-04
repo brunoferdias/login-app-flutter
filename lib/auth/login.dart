@@ -2,14 +2,16 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:local_auth/local_auth.dart';
+
 import 'package:login_ui/auth/components/botao.dart';
 import 'package:login_ui/auth/components/campoDeTexto.dart';
 import 'package:login_ui/auth/signup.dart';
 import 'package:login_ui/home/home.dart';
+import 'dart:io' show Platform;
 
 import 'package:lottie/lottie.dart';
 import 'package:page_transition/page_transition.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
 class Login extends StatefulWidget {
   const Login({Key? key}) : super(key: key);
@@ -19,66 +21,22 @@ class Login extends StatefulWidget {
 }
 
 class _LoginState extends State<Login> {
-
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _firebaseAuth = FirebaseAuth.instance;
   bool carregandoDados = false;
   final GoogleSignIn googleSignIn = GoogleSignIn();
-  final LocalAuthentication localAuth = LocalAuthentication();
 
   final _emailFocusNode = FocusNode();
   final _senhaFocusNode = FocusNode();
 
-
-
-  Future<void> _authenticate() async {
-    bool canCheckBiometrics = await localAuth.canCheckBiometrics;
-
-    if (!canCheckBiometrics) {
-      // Dispositivo não suporta autenticação biométrica
-      return;
-    }
-
-    List<BiometricType> availableBiometrics = await localAuth.getAvailableBiometrics();
-    // Verifica se Face ID ou Touch ID está disponível no dispositivo
-    if (availableBiometrics.contains(BiometricType.face) || availableBiometrics.contains(BiometricType.fingerprint)) {
-      bool authenticated = await localAuth.authenticate(
-        localizedReason: 'Autentique-se para prosseguir',
-
-      );
-
-      if (authenticated) {
-
-        Navigator.push(
-          context,
-          PageTransition(
-            type: PageTransitionType.rightToLeft,
-            alignment: Alignment.center,
-            child: Home(),
-            isIos: true,
-            duration: Duration(milliseconds: 1000),
-            reverseDuration: Duration(milliseconds: 1000),
-          ),
-        );
-
-        // Autenticação bem-sucedida
-        // Faça algo após a autenticação (por exemplo, navegar para a próxima tela)
-      } else {
-        // Autenticação falhou ou foi cancelada pelo usuário
-      }
-    } else {
-      // O dispositivo não tem suporte a Face ID ou Touch ID
-    }
-  }
-
-
   Future<UserCredential?> _signInWithGoogle() async {
     try {
-      final GoogleSignInAccount? googleSignInAccount = await googleSignIn.signIn();
+      final GoogleSignInAccount? googleSignInAccount =
+          await googleSignIn.signIn();
       if (googleSignInAccount != null) {
         final GoogleSignInAuthentication googleSignInAuthentication =
-        await googleSignInAccount.authentication;
+            await googleSignInAccount.authentication;
         final AuthCredential credential = GoogleAuthProvider.credential(
           accessToken: googleSignInAuthentication.accessToken,
           idToken: googleSignInAuthentication.idToken,
@@ -91,10 +49,8 @@ class _LoginState extends State<Login> {
     return null;
   }
 
-
   login() async {
-    if (_emailController.text.isEmpty ||
-        _passwordController.text.isEmpty) {
+    if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
         content: Text('Insira o email e a senha!'),
         duration: Duration(seconds: 2),
@@ -106,7 +62,8 @@ class _LoginState extends State<Login> {
       });
 
       try {
-        UserCredential userCredential = await _firebaseAuth.signInWithEmailAndPassword(
+        UserCredential userCredential =
+            await _firebaseAuth.signInWithEmailAndPassword(
           email: _emailController.text,
           password: _passwordController.text,
         );
@@ -135,7 +92,6 @@ class _LoginState extends State<Login> {
         String errorMessage = 'Ocorreu um erro ao fazer login.';
 
         switch (e.code) {
-
           case 'user-not-found':
             errorMessage = 'Email não cadastrado!';
             break;
@@ -148,7 +104,6 @@ class _LoginState extends State<Login> {
           case 'network-request-failed':
             errorMessage = 'Sem conexão de internet!';
             break;
-
         }
         print(e.code.toString());
 
@@ -160,7 +115,6 @@ class _LoginState extends State<Login> {
       }
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -199,7 +153,6 @@ class _LoginState extends State<Login> {
                       prefixIcon: SvgPicture.asset("assets/icons/email.svg"),
                       controller: _emailController,
                       onSaved: (email) {},
-
                     ),
 
                     //Senha
@@ -209,7 +162,6 @@ class _LoginState extends State<Login> {
                       obscureText: true,
                       controller: _passwordController,
                       onSaved: (password) {},
-
                     ),
 
                     //Divider
@@ -222,23 +174,25 @@ class _LoginState extends State<Login> {
                     ),
 
                     //Entrar
-                    carregandoDados ? CircularProgressIndicator() : BotaoCustomizado(
-                      text: "Entrar",
-                      onPressed: () {
-                        print("entrar");
+                    carregandoDados
+                        ? CircularProgressIndicator()
+                        : BotaoCustomizado(
+                            text: "Entrar",
+                            onPressed: () {
+                              print("entrar");
 
-                        //Navigator.push(context, MaterialPageRoute(builder: (context)=> Home()));
-                        login();
-
-                      },
-                    ),
+                              //Navigator.push(context, MaterialPageRoute(builder: (context)=> Home()));
+                              login();
+                            },
+                          ),
 
                     //Cadastrar
                     BotaoCustomizado(
                       text: "Cadastrar",
                       onPressed: () {
                         print("cadastrar");
-                        Navigator.push(context, MaterialPageRoute(builder: (context)=> Signup()));
+                        Navigator.push(context,
+                            MaterialPageRoute(builder: (context) => Signup()));
                       },
                     ),
 
@@ -248,10 +202,19 @@ class _LoginState extends State<Login> {
                       crossAxisAlignment: CrossAxisAlignment.center,
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        GestureDetector(
-                            onTap: () {
+                        Platform.isAndroid ? Container() : GestureDetector(
+                            onTap: () async {
                               print("Entrar com Apple");
-                              _authenticate();
+
+                              final credential =
+                                  await SignInWithApple.getAppleIDCredential(
+                                scopes: [
+                                  AppleIDAuthorizationScopes.email,
+                                  AppleIDAuthorizationScopes.fullName,
+                                ],
+                              );
+
+                              print(credential);
                             },
                             child: SvgPicture.asset(
                                 "assets/icons/apple_box.svg",
@@ -259,30 +222,79 @@ class _LoginState extends State<Login> {
                         SizedBox(
                           width: 15,
                         ),
-                        GestureDetector(
-                          onTap: () async {
-                            print("Entrar com Google");
+                        Platform.isIOS
+                            ? GestureDetector(
+                                onTap: () async {
+                                  final GoogleSignIn googleSignIn =
+                                      GoogleSignIn();
+                                  final GoogleSignInAccount? googleUser =
+                                      await googleSignIn.signIn();
 
+                                  if (googleUser != null) {
+                                    final GoogleSignInAuthentication
+                                        googleAuth =
+                                        await googleUser.authentication;
+                                    final AuthCredential credential =
+                                        GoogleAuthProvider.credential(
+                                      accessToken: googleAuth.accessToken,
+                                      idToken: googleAuth.idToken,
+                                    );
 
-                            UserCredential? userCredential = await _signInWithGoogle();
-                            if (userCredential != null) {
-                              print('Usuário logado com sucesso: ${userCredential.user!.displayName}');
+                                    final UserCredential userCredential =
+                                        await FirebaseAuth.instance
+                                            .signInWithCredential(credential);
+                                    final User? user = userCredential.user;
 
-                              Navigator.push(
-                                context,
-                                PageTransition(
-                                  type: PageTransitionType.rightToLeft,
-                                  alignment: Alignment.center,
-                                  child: Home(),
-                                  isIos: true,
-                                  duration: Duration(milliseconds: 1000),
-                                  reverseDuration: Duration(milliseconds: 1000),
+                                    if (user != null) {
+                                      Navigator.push(
+                                        context,
+                                        PageTransition(
+                                          type: PageTransitionType.rightToLeft,
+                                          alignment: Alignment.center,
+                                          child: Home(),
+                                          isIos: true,
+                                          duration:
+                                              Duration(milliseconds: 1000),
+                                          reverseDuration:
+                                              Duration(milliseconds: 1000),
+                                        ),
+                                      );
+                                    }
+                                  }
+                                },
+                                child: SvgPicture.asset(
+                                  "assets/icons/google_box.svg",
+                                  width: 50,
                                 ),
-                              );
-                            }
-                          },
-                          child: SvgPicture.asset("assets/icons/google_box.svg", width: 50),
-                        ),
+                              )
+                            : GestureDetector(
+                                onTap: () async {
+                                  print("Entrar com Google");
+
+                                  UserCredential? userCredential =
+                                      await _signInWithGoogle();
+                                  if (userCredential != null) {
+                                    print(
+                                        'Usuário logado com sucesso: ${userCredential.user!.displayName}');
+
+                                    Navigator.push(
+                                      context,
+                                      PageTransition(
+                                        type: PageTransitionType.rightToLeft,
+                                        alignment: Alignment.center,
+                                        child: Home(),
+                                        isIos: true,
+                                        duration: Duration(milliseconds: 1000),
+                                        reverseDuration:
+                                            Duration(milliseconds: 1000),
+                                      ),
+                                    );
+                                  }
+                                },
+                                child: SvgPicture.asset(
+                                    "assets/icons/google_box.svg",
+                                    width: 50),
+                              ),
                       ],
                     )
                   ],

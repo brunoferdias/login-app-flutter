@@ -122,6 +122,10 @@ class _LoginState extends State<Login> {
     }
   }
 
+
+
+
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -167,7 +171,7 @@ class _LoginState extends State<Login> {
                       prefixIcon: SvgPicture.asset("assets/icons/password.svg"),
                       obscureText: true,
                       controller: _passwordController,
-                      onSaved: (password) {},
+
                     ),
 
                     //Divider
@@ -205,6 +209,9 @@ class _LoginState extends State<Login> {
                       crossAxisAlignment: CrossAxisAlignment.center,
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
+
+
+                        //Apple
                         Platform.isAndroid ? Container() : GestureDetector(
                             onTap: () async {
                               print("Entrar com Apple");
@@ -222,54 +229,18 @@ class _LoginState extends State<Login> {
                             child: SvgPicture.asset(
                                 "assets/icons/apple_box.svg",
                                 width: 50)),
+
+
+
+
                         SizedBox(
                           width: 15,
                         ),
+
+
+                        //Google
                         Platform.isIOS
-                            ? GestureDetector(
-                                onTap: () async {
-                                  final GoogleSignIn googleSignIn =
-                                      GoogleSignIn();
-                                  final GoogleSignInAccount? googleUser =
-                                      await googleSignIn.signIn();
-
-                                  if (googleUser != null) {
-                                    final GoogleSignInAuthentication
-                                        googleAuth =
-                                        await googleUser.authentication;
-                                    final AuthCredential credential =
-                                        GoogleAuthProvider.credential(
-                                      accessToken: googleAuth.accessToken,
-                                      idToken: googleAuth.idToken,
-                                    );
-
-                                    final UserCredential userCredential =
-                                        await FirebaseAuth.instance
-                                            .signInWithCredential(credential);
-                                    final User? user = userCredential.user;
-
-                                    if (user != null) {
-                                      Navigator.push(
-                                        context,
-                                        PageTransition(
-                                          type: PageTransitionType.rightToLeft,
-                                          alignment: Alignment.center,
-                                          child: Home(),
-                                          isIos: true,
-                                          duration:
-                                              Duration(milliseconds: 1000),
-                                          reverseDuration:
-                                              Duration(milliseconds: 1000),
-                                        ),
-                                      );
-                                    }
-                                  }
-                                },
-                                child: SvgPicture.asset(
-                                  "assets/icons/google_box.svg",
-                                  width: 50,
-                                ),
-                              )
+                            ? Container()
                             : GestureDetector(
                                 onTap: () async {
                                   print("Entrar com Google");
@@ -277,8 +248,7 @@ class _LoginState extends State<Login> {
                                   UserCredential? userCredential =
                                       await _signInWithGoogle();
                                   if (userCredential != null) {
-                                    print(
-                                        'Usuário logado com sucesso: ${userCredential.user!.displayName}');
+                                    print('Usuário logado com sucesso: ${userCredential.user!.displayName}');
 
                                     Navigator.push(
                                       context,
@@ -298,6 +268,8 @@ class _LoginState extends State<Login> {
                                     "assets/icons/google_box.svg",
                                     width: 50),
                               ),
+
+
                       ],
                     )
                   ],
